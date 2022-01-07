@@ -1,6 +1,7 @@
 package com.mars.infra.router
 
 import android.app.Activity
+import android.os.Bundle
 import com.mars.infra.router.api.RouterUri
 
 /**
@@ -8,4 +9,9 @@ import com.mars.infra.router.api.RouterUri
  */
 @RouterUri(module = "login", path = "/login")
 class LoginActivity: Activity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_login)
+    }
 }

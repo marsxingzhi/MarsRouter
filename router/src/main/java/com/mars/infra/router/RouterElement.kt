@@ -6,4 +6,8 @@ package com.mars.infra.router
 data class RouterElement(
     val module: String?,
     val path: String?
-)
+) {
+    override fun toString(): String {
+        return "$module-$path"
+    }
+}

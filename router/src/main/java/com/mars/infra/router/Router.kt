@@ -1,8 +1,7 @@
 package com.mars.infra.router
 
 import android.content.Context
-import android.util.Log
-import org.jetbrains.annotations.TestOnly
+import android.content.Intent
 
 /**
  * Created by JohnnySwordMan on 2022/1/7
@@ -30,6 +29,14 @@ object Router {
             }
         }
 //        test()
+    }
+
+    fun loadUri(context: Context, module: String?, path: String?) {
+//        val element = RouterElement(module, path)
+        val target = uriHandler.getValue(path)
+        val cls = Class.forName(target)
+        val intent = Intent(context, cls)
+        context.startActivity(intent)
     }
 
 
