@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import com.mars.infra.router.api.RouterUri
+import com.mars.infra.router.runtime.Router
 
 @RouterUri(module = "main", path = "/main/page")
 class MainActivity : AppCompatActivity() {
