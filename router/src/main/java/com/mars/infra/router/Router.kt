@@ -8,6 +8,8 @@ import android.content.Intent
  */
 object Router {
 
+    private var isInit = false
+
     private val uriHandler by lazy {
         UriHandler()
     }
@@ -19,6 +21,10 @@ object Router {
      * 获得当前app在手机中对应的apk文件，把它交给DexFile，这样可以获取到apk中所有的类
      */
     fun init(context: Context) {
+        loadRouterMap()
+        if (isInit) {
+            return
+        }
         val classNames = ClassUtils.getFileNameByPackageName(context, "com.mars.infra.router")
         classNames.forEach { name ->
             val cls = Class.forName(name)
@@ -29,6 +35,11 @@ object Router {
             }
         }
 //        test()
+    }
+
+
+    private fun loadRouterMap() {
+//        RouterMapManager.loadRouterMap()
     }
 
     fun loadUri(context: Context, module: String?, path: String?) {
