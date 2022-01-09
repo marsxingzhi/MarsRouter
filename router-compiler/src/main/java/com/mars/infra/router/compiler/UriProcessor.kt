@@ -16,6 +16,12 @@ class UriProcessor : BaseProcessor() {
     override fun process(annotations: MutableSet<out TypeElement>, env: RoundEnvironment): Boolean {
         // 放在forEach之前创建，不能在forEach里面创建，否则始终只有第一个代码块创建
         val codeBlockBuilder = CodeBlock.builder()
+        val codeBlockBuilderForRouterMap = CodeBlock.builder()
+        codeBlockBuilderForRouterMap.addStatement(
+            "\$T<\$T, \$T> map = new \$T()",
+            Map::class.java, String::class.java, String::class.java, HashMap::class.java
+        )
+
         var hash: String? = null
         env.getElementsAnnotatedWith(RouterUri::class.java)
             .filter { it.kind.isClass }
@@ -26,7 +32,7 @@ class UriProcessor : BaseProcessor() {
                     val uri = element.getAnnotation(RouterUri::class.java)
                     if (hash == null) {
                         // 不为空才创建，否则会出现一个模块存在多个文件
-                        hash = Random.nextInt(10000).toString()
+//                        hash = Random.nextInt(10000).toString()
                     }
                     codeBlockBuilder.addStatement(
                         "handler.register(\$S, \$S, \$S)",
@@ -34,16 +40,54 @@ class UriProcessor : BaseProcessor() {
                         uri.path,
                         element
                     )
-
-
+                    codeBlockBuilderForRouterMap.addStatement(
+                        "map.put(\$S, \$S)",
+                        uri.path,
+                        element
+                    )
                 }
             }
         if (hash == null) {
-            hash = "996"
+            hash = "1024"
         }
         // 不能重复创建Java文件，因此这个需要放在forEach之后
         buildUriAnnotationInitClass(codeBlockBuilder.build(), hash)
+        buildRouterMappingClass(codeBlockBuilderForRouterMap.build(), hash)
         return true
+    }
+
+    /**
+     * public class RouterMapping_xxx {
+     *
+     *
+     *      public static Map<String, String> get() {
+     *          Map<String, String> mapping = new HashMap<>();
+     *          map.put("path", "com.mars.infra.router.LoginActivity");
+     *          return map;
+     *      }
+     * }
+     */
+    private fun buildRouterMappingClass(codeBlock: CodeBlock?, hash: String) {
+        val methodSpec =
+            MethodSpec.methodBuilder("get")
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                .addCode(codeBlock)
+                .addStatement("return map")
+                .returns(ClassName.get("java.util", "Map"))
+                .build()
+
+        val typeSpec =
+            TypeSpec.classBuilder("RouterMapping_${hash}")
+                .addModifiers(Modifier.PUBLIC)
+                .addMethod(methodSpec)
+                .build()
+
+        try {
+            // javax.annotation.processing.FilerException: Attempt to recreate a file for type com.mars.infra.router.UriAnnotationInit_123456
+            JavaFile.builder(PKG, typeSpec).build().writeTo(mFiler)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     /**
@@ -53,6 +97,7 @@ class UriProcessor : BaseProcessor() {
      *          handler.register("module", "path", "com.mars.infra.router.LoginActivity")
      *      }
      * }
+     *
      */
     private fun buildUriAnnotationInitClass(codeBlock: CodeBlock, hash: String? = null) {
         val simpleName = "UriAnnotationInit"
