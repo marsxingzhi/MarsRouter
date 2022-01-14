@@ -1,5 +1,7 @@
 package com.mars.infra.router.plugin
 
+import com.mars.infra.router.plugin.base.DeleteCallback
+import org.apache.commons.io.IOUtils
 import java.io.File
 import java.util.*
 import java.util.jar.JarEntry
@@ -27,5 +29,38 @@ object JarUtils {
         }
         file.close()
         return hashSet
+    }
+
+    fun deleteJarScan(jarFile: File, mDeleteCallback: DeleteCallback?) {
+        val file = JarFile(jarFile)
+        file.use {
+            val enumeration = file.entries()
+            while (enumeration.hasMoreElements()) {
+                val jarEntry = enumeration.nextElement()
+                val entryName = jarEntry.name
+                if (entryName.endsWith(".class")) {
+                    val inputStream = file.getInputStream(jarEntry)
+                    val bytes = IOUtils.toByteArray(inputStream)
+                    mDeleteCallback?.delete(entryName, bytes)
+                }
+            }
+        }
+    }
+
+    fun deleteJarScan(jarFile: File, removeClasses: List<String>, mDeleteCallback: DeleteCallback?) {
+        val file = JarFile(jarFile)
+        file.use {
+            val enumeration = file.entries()
+            while (enumeration.hasMoreElements()) {
+                val jarEntry = enumeration.nextElement()
+                val entryName = jarEntry.name
+
+                if (entryName.endsWith(".class") && removeClasses.contains(entryName)) {
+                    val inputStream = file.getInputStream(jarEntry)
+                    val bytes = IOUtils.toByteArray(inputStream)
+                    mDeleteCallback?.delete(entryName, bytes)
+                }
+            }
+        }
     }
 }
