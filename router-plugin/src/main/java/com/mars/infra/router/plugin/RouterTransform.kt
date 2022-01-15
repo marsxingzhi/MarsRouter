@@ -20,9 +20,12 @@ class RouterTransform : Transform() {
     lateinit var mCollector: RouterCollector
 
     private var mDeleteCallback: DeleteCallback? = null
+    private var outputProvider: TransformOutputProvider? = null
+    private var mIsIncremental = false
+
 
     override fun getName(): String {
-        return "${RouterTransform::class.java.simpleName}_v2"
+        return "${RouterTransform::class.java.simpleName}_0.2.4"
     }
 
     override fun getInputTypes(): MutableSet<QualifiedContent.ContentType> {
@@ -35,7 +38,7 @@ class RouterTransform : Transform() {
 
     // 支持增量编译
     override fun isIncremental(): Boolean {
-        return false
+        return true
     }
 
     /**
@@ -43,19 +46,26 @@ class RouterTransform : Transform() {
      * 1. apply该插件的模块的所有的类以directory的形式获取
      * 2. 本地依赖或者远程依赖，以jar包的形式获取
      */
-    override fun transform(transformInvocation: TransformInvocation?) {
+    override fun transform(transformInvocation: TransformInvocation) {
         super.transform(transformInvocation)
-        transformInvocation ?: return
         // 如果不支持增量编译，则删除目录
-        if (!transformInvocation.isIncremental) {
-            transformInvocation.outputProvider.deleteAll()
-        }
+        mIsIncremental = transformInvocation.isIncremental
+        val inputs = transformInvocation.inputs
+        outputProvider = transformInvocation.outputProvider
 
+        println("RouterTransform---mIsIncremental---😋 = $mIsIncremental")
+        println("RouterTransform---isIncremental---😋 = $isIncremental")
+
+        // isIncremental
+        if (!mIsIncremental) {
+            try {
+                transformInvocation.outputProvider.deleteAll()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
         mCollector = RouterCollector()
 
-        val inputs = transformInvocation.inputs
-        val outputProvider = transformInvocation.outputProvider
-        println("RouterTransform---isIncremental = $isIncremental")
         inputs?.forEach {
             it.jarInputs?.forEach { jarInput ->
                 val status = jarInput.status
@@ -65,13 +75,13 @@ class RouterTransform : Transform() {
                 if (destName.endsWith(".jar")) {
                     destName = destName.substring(0, destName.length - 4)
                 }
-                val dest = outputProvider.getContentLocation(
+                val dest = outputProvider!!.getContentLocation(
                     "${destName}_${hash}",
                     jarInput.contentTypes,
                     jarInput.scopes,
                     Format.JAR
                 )
-                if (isIncremental) {
+                if (mIsIncremental) {
                     when (status) {
                         Status.ADDED -> {
                             foreachJar(jarInput, dest)
@@ -95,51 +105,7 @@ class RouterTransform : Transform() {
                 }
             }
             it.directoryInputs?.forEach { directoryInput ->
-                val dest = outputProvider.getContentLocation(
-                    directoryInput.name,
-                    directoryInput.contentTypes,
-                    directoryInput.scopes,
-                    Format.DIRECTORY
-                )
-                // 获取修改的文件
-                val map = directoryInput.changedFiles
-                val dir = directoryInput.file
-                if (isIncremental) {
-                    map.forEach { (file, status) ->
-                        /**
-                         * file: 可以理解成修改的class文件
-                         * dir: 输入目录
-                         * dest: 输出目录
-                         *
-                         * 举例：
-                         * file：/Users/geyan/projects/github/MarsRouter/app/build/tmp/kotlin-classes/debug/com/mars/infra/router/TestLogin2.class
-                         * dir：/Users/geyan/projects/github/MarsRouter/app/build/tmp/kotlin-classes/debug
-                         * dest：/Users/geyan/projects/github/MarsRouter/app/build/intermediates/transforms/RouterTransform_v2/debug/55
-                         */
-                        val destFilePath =
-                            file.absolutePath.replace(dir.absolutePath, dest.absolutePath)
-                        val destFile = File(destFilePath)
-                        when (status) {
-                            Status.REMOVED -> {
-                                deleteDirectory(destFile, dest)
-                            }
-                            Status.ADDED, Status.CHANGED -> {
-                                // 全部拷贝
-                                try {
-                                    FileUtils.touch(destFile)
-                                } catch (ignored: Exception) {
-                                    Files.createParentDirs(destFile)
-                                }
-                                modifySingleFile(file, dir, destFile)
-                            }
-                            else -> {
-
-                            }
-                        }
-                    }
-                } else {
-                    foreachClass(dir, dest)
-                }
+                foreachClass(directoryInput)
             }
         }
 
@@ -148,6 +114,54 @@ class RouterTransform : Transform() {
         // 修改代码
         mCollector.getDestFile()?.let {
             RegisterCodeGenerator.insertInitCode(mCollector.getRouterMap(), it)
+        }
+    }
+
+    private fun foreachClass(directoryInput: DirectoryInput) {
+        val dest = outputProvider!!.getContentLocation(
+            directoryInput.name,
+            directoryInput.contentTypes,
+            directoryInput.scopes,
+            Format.DIRECTORY
+        )
+        // 获取修改的文件
+        val map = directoryInput.changedFiles
+        val dir = directoryInput.file
+        if (mIsIncremental) {
+            map.forEach { (file, status) ->
+                /**
+                 * file: 可以理解成修改的class文件
+                 * dir: 输入目录
+                 * dest: 输出目录
+                 *
+                 * 举例：
+                 * file：/Users/geyan/projects/github/MarsRouter/app/build/tmp/kotlin-classes/debug/com/mars/infra/router/TestLogin2.class
+                 * dir：/Users/geyan/projects/github/MarsRouter/app/build/tmp/kotlin-classes/debug
+                 * dest：/Users/geyan/projects/github/MarsRouter/app/build/intermediates/transforms/RouterTransform_v2/debug/55
+                 */
+                val destFilePath =
+                    file.absolutePath.replace(dir.absolutePath, dest.absolutePath)
+                val destFile = File(destFilePath)
+                when (status) {
+                    Status.REMOVED -> {
+                        deleteDirectory(destFile, dest)
+                    }
+                    Status.ADDED, Status.CHANGED -> {
+                        // 全部拷贝
+                        try {
+                            FileUtils.touch(destFile)
+                        } catch (ignored: Exception) {
+                            Files.createParentDirs(destFile)
+                        }
+                        modifySingleFile(file, dir, destFile)
+                    }
+                    else -> {
+
+                    }
+                }
+            }
+        } else {
+            changeFile(dir, dest)
         }
     }
 
@@ -207,6 +221,9 @@ class RouterTransform : Transform() {
                 destFile.walkTopDown().forEach { classFile ->
                     deleteSingleScan(classFile, dest)
                 }
+//                for (classFile in com.android.utils.FileUtils.getAllFiles(destFile)) {
+//                    deleteSingleScan(classFile, dest)
+//                }
             } else {
                 deleteSingleScan(destFile, dest)
             }
@@ -214,8 +231,12 @@ class RouterTransform : Transform() {
 
         }
         try {
-            if (dest.exists()) {
-                FileUtils.forceDelete(dest)
+            // 增量编译下，文件一直打不进apk，罪魁祸首！！！
+//            if (dest.exists()) {
+//                FileUtils.forceDelete(dest)
+//            }
+            if (destFile.exists()) {
+                FileUtils.forceDelete(destFile)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -224,7 +245,7 @@ class RouterTransform : Transform() {
 
     private fun deleteSingleScan(classFile: File, dest: File) {
         try {
-            if (classFile.endsWith(".class")) {
+            if (classFile.absolutePath.endsWith(".class")) {
                 // classPath = com/mars/infra.router/TestLogin2.class
                 val classPath =
                     classFile.absolutePath.replace(dest.absolutePath + File.separator, "")
@@ -247,9 +268,12 @@ class RouterTransform : Transform() {
     }
 
 
-    private fun foreachClass(dir: File, dest: File) {
+    private fun changeFile(dir: File, dest: File) {
         // 注意：copyDirectory，不是copyFile
-        FileUtils.copyDirectory(dir, dest)
+        if (dir.isDirectory) {
+            FileUtils.copyDirectory(dir, dest)
+        }
+
 
         // 下面可以做一些class的遍历处理，可根据类名、包等信息，找到需要的类
 

@@ -22,19 +22,27 @@ object ClassUtils {
      * 把bytes写到destFile文件中
      */
     fun saveFile(bytes: ByteArray?, destFile: File) {
-        bytes?.apply {
-            // 如果老文件存在，先删除
-            if (destFile.exists()) {
-                destFile.delete()
-            }
-            // 新建文件
-            destFile.createNewFile()
-            val stream = FileOutputStream(destFile)
-            // use的用法：对于实现Closeable接口的对象，调用use函数，可以在结束的时候自动执行close，非常适合File操作
-            stream.use {
-                it.write(this)
-            }
-        }
+       try {
+           var modified: File? = null
+           bytes?.apply {
+               modified = destFile
+               // 如果老文件存在，先删除
+               if (modified!!.exists()) {
+                   modified!!.delete()
+               }
+               // 新建文件
+               modified!!.createNewFile()
+               val stream = FileOutputStream(modified)
+               // use的用法：对于实现Closeable接口的对象，调用use函数，可以在结束的时候自动执行close，非常适合File操作
+//               stream.use {
+//                   it.write(this)
+//               }
+               stream.write(bytes)
+               stream.close()
+           }
+       } catch (e: Exception) {
+           e.printStackTrace()
+       }
     }
 
 }

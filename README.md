@@ -11,7 +11,7 @@
 - [x] 静态注册，优化运行时反射性能消耗
 - [x] gradle插件单独成library
 - [ ] gradle插件多线程优化
-- [ ] 增量编译
+- [x] 增量编译
 - [ ] gradle.kts
 
 path分发：
