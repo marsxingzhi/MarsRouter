@@ -10,13 +10,20 @@ class RouterCollector {
     companion object {
         private const val PACKAGE_NAME = "com/mars/infra/router/runtime"
         private const val PREFIX = "RouterMapping_"
-        private const val SUFFIX = ".class"
+//        private const val SUFFIX = ".class"
         const val ROUTER_PATH = "com/mars/infra/router/runtime/Router.class"
+
+        private const val SERVICE_IMPL_MAP_PREFIX = "ServiceImplMap_"
+        const val SERVICE_MANAGER_PATH = "com/mars/infra/router/runtime/ServiceManager.class"
     }
 
     private val routerMap = mutableSetOf<String>()
     // Router.class所在jar包文件
     private var destFile: File? = null
+
+    private val serviceImplSet = mutableSetOf<String>()
+    // ServiceManager.class所在jar包文件
+    private var serviceImplDestFile: File? = null
 
     fun getRouterMap(): Set<String> {
         return routerMap
@@ -24,6 +31,14 @@ class RouterCollector {
 
     fun getDestFile(): File? {
         return destFile
+    }
+
+    fun getServiceImplSet(): Set<String> {
+        return serviceImplSet
+    }
+
+    fun getServiceManagerDestFile(): File? {
+        return serviceImplDestFile
     }
 
     /**
@@ -40,11 +55,19 @@ class RouterCollector {
         } else {
             if (inputFile.absolutePath.contains(PACKAGE_NAME)
                 && inputFile.name.startsWith(PREFIX)
-                && inputFile.name.endsWith(SUFFIX)
+                && inputFile.name.endsWith(".class")
             ) {
-                val className: String = inputFile.name.replace(SUFFIX, "")
+                val className: String = inputFile.name.replace(".class", "")
                 // 只收集类名
                 routerMap.add(className)
+            }
+
+            if (inputFile.absolutePath.contains(PACKAGE_NAME)
+                && inputFile.name.startsWith(SERVICE_IMPL_MAP_PREFIX)
+                && inputFile.name.endsWith(".class")
+            ) {
+                val className: String = inputFile.name.replace(".class", "")
+                serviceImplSet.add(className)
             }
         }
     }
@@ -59,16 +82,31 @@ class RouterCollector {
 
             if (className.contains(PACKAGE_NAME)
                 && className.contains(PREFIX)
-                && className.contains(SUFFIX)) {
+                && className.contains(".class")) {
 
                 val newClassName = className.replace(PACKAGE_NAME, "")
                     .replace("/", "")
-                    .replace(SUFFIX, "")
+                    .replace(".class", "")
                 routerMap.add(newClassName)
             }
 
             if (className == ROUTER_PATH) {
                 destFile = file
+            }
+
+
+            if (className.contains(PACKAGE_NAME)
+                && className.contains(SERVICE_IMPL_MAP_PREFIX)
+                && className.contains(".class")) {
+
+                val newClassName = className.replace(PACKAGE_NAME, "")
+                    .replace("/", "")
+                    .replace(".class", "")
+                serviceImplSet.add(newClassName)
+            }
+
+            if (className == SERVICE_MANAGER_PATH) {
+                serviceImplDestFile = file
             }
         }
     }

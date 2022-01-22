@@ -68,5 +68,8 @@ class RouterTransform : BaseTransform() {
         collector.destFile?.let {
             RegisterCodeGenerator.insertInitCode(collector.routerMapping, it)
         }
+        collector.serviceImplFile?.let { file ->
+//            RegisterCodeGenerator.insertServiceImplCode(collector.serviceMap, file)
+        }
     }
 }

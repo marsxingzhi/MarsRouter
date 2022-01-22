@@ -16,12 +16,23 @@ class RouterMappingCollector {
     companion object {
         private const val PACKAGE_NAME = "com/mars/infra/router/runtime"
         private const val PREFIX = "RouterMapping_"
+        private const val SERVICE_IMPL_MAP_PREFIX = "ServiceImplMap_"
         private const val SUFFIX = ".class"
         const val ROUTER_PATH = "com/mars/infra/router/runtime/Router.class"
+        const val SERVICE_MANAGER_PATH = "com/mars/infra/router/runtime/ServiceManager.class"
     }
 
+    /**
+     * 收集RouterMapping_xxx类名
+     */
     val routerMapping = mutableSetOf<String>()
     var destFile: File? = null
+
+    /**
+     * 收集ServiceImplMap_xxx类名
+     */
+    val serviceMap = mutableSetOf<String>()
+    var serviceImplFile: File? = null
 
     fun collectFromJarFile(jarFile: File) {
         val entries: Enumeration<JarEntry> = JarFile(jarFile).entries()
@@ -47,6 +58,17 @@ class RouterMappingCollector {
                 // 注意：需要将该方法放在copyFile之后，传入destFile。否则会出错，因为jar文件已经转移了
                 destFile = jarFile
             }
+
+            if (entryName.contains(PACKAGE_NAME) && entryName.contains(SERVICE_IMPL_MAP_PREFIX) && entryName.contains(SUFFIX)) {
+                val className: String = entryName.replace(PACKAGE_NAME, "")
+                    .replace("/", "")
+                    .replace(SUFFIX, "")
+                serviceMap.add(className)
+            }
+            if (entryName == SERVICE_MANAGER_PATH) {
+                // 注意：需要将该方法放在copyFile之后，传入destFile。否则会出错，因为jar文件已经转移了
+                serviceImplFile = jarFile
+            }
         }
     }
 
@@ -69,6 +91,14 @@ class RouterMappingCollector {
                 val className: String = file.name.replace(SUFFIX, "")
                 println("RouterMappingCollector collect file = " + file.absolutePath)
                 routerMapping.add(className)
+            }
+
+            if (file.absolutePath.contains(PACKAGE_NAME)
+                && file.name.startsWith(SERVICE_IMPL_MAP_PREFIX)
+                && file.name.endsWith(SUFFIX)
+            ) {
+                val className: String = file.name.replace(SUFFIX, "")
+                serviceMap.add(className)
             }
         }
     }

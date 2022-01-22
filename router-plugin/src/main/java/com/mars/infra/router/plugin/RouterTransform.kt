@@ -111,9 +111,16 @@ class RouterTransform : Transform() {
 
         println("RouterTransform collect routerMap = ${mCollector.getRouterMap()}")
         println("RouterTransform collect path of Router.class = ${mCollector.getDestFile()?.absolutePath}")
+
+        println("RouterTransform collect serviceImplSet = ${mCollector.getServiceImplSet()}")
+        println("RouterTransform collect path of ServiceManager.class = ${mCollector.getServiceManagerDestFile()?.absolutePath}")
+
         // 修改代码
         mCollector.getDestFile()?.let {
             RegisterCodeGenerator.insertInitCode(mCollector.getRouterMap(), it)
+        }
+        mCollector.getServiceManagerDestFile()?.let { file ->
+            RegisterCodeGenerator.insertServiceImplMap(mCollector.getServiceImplSet(), file)
         }
     }
 

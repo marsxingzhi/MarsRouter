@@ -113,6 +113,10 @@ object Router {
         }
     }
 
+    fun <T> getService(serviceClass: Class<T>): T? {
+        return ServiceManager.getService(serviceClass)
+    }
+
     private fun test() {
         val className = "com.mars.infra.router.UriAnnotationInit_996"
         try {

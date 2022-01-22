@@ -1,5 +1,6 @@
 package com.mars.infra.router.test
 
+import com.mars.infra.router.LoginServiceImpl
 import java.util.*
 
 /**
@@ -12,6 +13,7 @@ object Router {
 
     private fun loadRouterMap() {
 //        routerMap.putAll(RouterMapping_1024.get())
-        isInit = true
+        val loginService = LoginServiceImpl()
+//        isInit = true
     }
 }

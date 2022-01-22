@@ -59,4 +59,51 @@ object RegisterCodeGenerator {
         classReader.accept(routerClassVisitor, ClassReader.EXPAND_FRAMES)
         return classWriter.toByteArray()
     }
+
+    /**
+     * 将代码插入到ServiceManager中
+     */
+//    fun insertServiceImplCode(serviceMap: MutableSet<String>, jarFile: File) {
+//        val oprJar = File(jarFile.parent, jarFile.name.toString() + ".opt")
+//        if (oprJar.exists()) {
+//            oprJar.delete()
+//        }
+//        val jarOutputStream = JarOutputStream(FileOutputStream(oprJar))
+//        // 操作ServiceManager.class所在的jar
+//        val file = JarFile(jarFile)
+//        val entries: Enumeration<JarEntry> = file.entries()
+//        while (entries.hasMoreElements()) {
+//            val jarEntry: JarEntry = entries.nextElement()
+//            val entryName: String = jarEntry.name
+//            val zipEntry = ZipEntry(entryName)
+//            val inputStream: InputStream = file.getInputStream(zipEntry)
+//            jarOutputStream.putNextEntry(zipEntry)
+//            if (entryName == RouterMappingCollector.SERVICE_MANAGER_PATH) {
+//                // 字节码插桩
+//                val bytes: ByteArray = createCodeInServiceManager(serviceMap, inputStream)
+//                jarOutputStream.write(bytes)
+//            } else {
+//                jarOutputStream.write(IOUtils.toByteArray(inputStream))
+//            }
+//            inputStream.close()
+//            jarOutputStream.closeEntry()
+//        }
+//        jarOutputStream.close()
+//        file.close()
+//        if (jarFile.exists()) {
+//            jarFile.delete()
+//        }
+//        oprJar.renameTo(jarFile)
+//    }
+
+//    private fun createCodeInServiceManager(
+//        serviceMap: MutableSet<String>,
+//        inputStream: InputStream
+//    ): ByteArray {
+//        val classReader = ClassReader(inputStream)
+//        val classWriter = ClassWriter(classReader, ClassWriter.COMPUTE_FRAMES)
+//        val serviceManagerClassVisitor = ServiceImplClassVisitor(Opcodes.ASM7, classWriter, serviceMap)
+//        classReader.accept(serviceManagerClassVisitor, ClassReader.EXPAND_FRAMES)
+//        return classWriter.toByteArray()
+//    }
 }
