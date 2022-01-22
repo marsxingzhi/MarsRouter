@@ -1,5 +1,6 @@
 package com.mars.infra.router.plugin.visitor
 
+import com.mars.infra.router.plugin.visitor.test.TestServiceImplMethodVisitor
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
 
@@ -21,7 +22,8 @@ class ServiceImplClassVisitor(
     ): MethodVisitor {
          var mv = super.visitMethod(access, name, descriptor, signature, exceptions)
         if (name.equals("getService")) {
-            mv = ServiceImplMethodVisitor(api, mv, serviceImplSet)
+            mv = ServiceImplMethodVisitorV2(api, mv, serviceImplSet)
+//            mv = TestServiceImplMethodVisitor(api, mv, serviceImplSet)
         }
         return mv
     }

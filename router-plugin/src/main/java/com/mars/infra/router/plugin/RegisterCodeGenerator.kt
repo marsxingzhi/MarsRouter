@@ -99,7 +99,9 @@ object RegisterCodeGenerator {
         inputStream: InputStream
     ): ByteArray {
         val classReader = ClassReader(inputStream)
-        val classWriter = ClassWriter(classReader, ClassWriter.COMPUTE_FRAMES)
+//        val classWriter = ClassWriter(classReader, ClassWriter.COMPUTE_FRAMES)
+        // flag改成0， https://stackoverflow.com/questions/11292701/error-while-instrumenting-class-files-asm-classwriter-getcommonsuperclass
+        val classWriter = ClassWriter(classReader, 0)
         val serviceImplClassVisitor = ServiceImplClassVisitor(Opcodes.ASM7, classWriter, serviceImplSet)
         classReader.accept(serviceImplClassVisitor, ClassReader.EXPAND_FRAMES)
         return classWriter.toByteArray()

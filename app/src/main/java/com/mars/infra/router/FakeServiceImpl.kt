@@ -1,5 +1,6 @@
 package com.mars.infra.router
 
+import android.util.Log
 import com.mars.infra.router.api.ServiceImpl
 
 /**
@@ -9,5 +10,6 @@ import com.mars.infra.router.api.ServiceImpl
 class FakeServiceImpl: IFakeService {
 
     override fun fakeTest() {
+        Log.e("mars", "FakeServiceImpl---成功调用 fakeTest")
     }
 }

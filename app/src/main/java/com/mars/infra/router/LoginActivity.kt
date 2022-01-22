@@ -2,6 +2,7 @@ package com.mars.infra.router
 
 import android.app.Activity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.mars.infra.router.api.RouterUri
@@ -28,5 +29,11 @@ class LoginActivity: AppCompatActivity() {
     private fun login() {
         val loginService = Router.getService(ILoginService::class.java)
         loginService?.login()
+
+        Router.getService(IFakeService::class.java)?.fakeTest()
+
+        Router.getService(IAccountService::class.java)?.getUser()?.also {
+            Log.e("mars", "成功调用AccountServiceImpl的getUser方法")
+        }
     }
 }

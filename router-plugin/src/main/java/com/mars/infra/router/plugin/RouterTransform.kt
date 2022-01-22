@@ -25,7 +25,7 @@ class RouterTransform : Transform() {
 
 
     override fun getName(): String {
-        return "${RouterTransform::class.java.simpleName}_0.2.4"
+        return "${RouterTransform::class.java.simpleName}_0.2.12"
     }
 
     override fun getInputTypes(): MutableSet<QualifiedContent.ContentType> {
