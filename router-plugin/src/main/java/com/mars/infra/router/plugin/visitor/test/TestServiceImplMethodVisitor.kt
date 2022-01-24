@@ -1,5 +1,7 @@
 package com.mars.infra.router.plugin.visitor.test
 
+import com.mars.infra.router.plugin.base.ServiceImplData
+import com.mars.infra.router.plugin.base.ServiceImplManager
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -18,7 +20,7 @@ class TestServiceImplMethodVisitor(
 
     override fun visitCode() {
         super.visitCode()
-        val serviceDataList = TestUtils.getServiceData()
+        val serviceDataList = ServiceImplManager.getDataList()
         beforeInject()
         for (i in serviceDataList.indices) {
             val data: ServiceImplData = serviceDataList[i]
@@ -28,7 +30,7 @@ class TestServiceImplMethodVisitor(
     }
 
     private fun inject(isStart: Boolean, isLast: Boolean, data: ServiceImplData) {
-        mv.visitLdcInsn(Type.getType(java.lang.String.format("L%s;", data.mInterface)))
+        mv.visitLdcInsn(Type.getType(java.lang.String.format("L%s;", data.interfaceClass)))
         mv.visitVarInsn(Opcodes.ALOAD, 0) //压栈
         val ifLabel: Label =
             if (isLast && gotoLabel != null) {
@@ -40,9 +42,9 @@ class TestServiceImplMethodVisitor(
         val instanceLabel = Label()
         mv.visitLabel(instanceLabel)
 
-        mv.visitTypeInsn(Opcodes.NEW, data.mClassName)
+        mv.visitTypeInsn(Opcodes.NEW, data.implementClass)
         mv.visitInsn(Opcodes.DUP) //出栈
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, data.mClassName, "<init>", "()V", false)
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, data.implementClass, "<init>", "()V", false)
         mv.visitVarInsn(Opcodes.ASTORE, 1)
         if (isStart != isLast) {
             if (gotoLabel == null) {

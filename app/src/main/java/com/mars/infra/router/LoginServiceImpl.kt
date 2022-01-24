@@ -13,6 +13,6 @@ class LoginServiceImpl : ILoginService {
         Log.e("mars", "插桩测试成功！！！")
     }
     override fun login() {
-        Log.e("mars", "登录成功")
+        Log.e("mars", "登录成功---☺️")
     }
 }

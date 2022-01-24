@@ -1,7 +1,7 @@
 package com.mars.infra.router.plugin.visitor
 
-import com.mars.infra.router.plugin.visitor.test.ServiceImplData
-import com.mars.infra.router.plugin.visitor.test.TestUtils
+import com.mars.infra.router.plugin.base.ServiceImplData
+import com.mars.infra.router.plugin.base.ServiceImplManager
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -23,7 +23,7 @@ class ServiceImplMethodVisitorV2(
             "()Ljava/lang/String;",
             false
         )
-        mv.visitLdcInsn(data.mInterface)
+        mv.visitLdcInsn(data.interfaceClass)
         mv.visitMethodInsn(
             Opcodes.INVOKEVIRTUAL,
             "java/lang/String",
@@ -32,11 +32,11 @@ class ServiceImplMethodVisitorV2(
             false
         )
         mv.visitJumpInsn(Opcodes.IFEQ, label)
-        mv.visitTypeInsn(Opcodes.NEW, data.mClassName)
+        mv.visitTypeInsn(Opcodes.NEW, data.implementClass)
         mv.visitInsn(Opcodes.DUP)
         mv.visitMethodInsn(
             Opcodes.INVOKESPECIAL,
-            data.mClassName,
+            data.implementClass,
             "<init>",
             "()V",
             false
@@ -52,7 +52,7 @@ class ServiceImplMethodVisitorV2(
 
             mv.visitCode()
 
-            val serviceDataList = TestUtils.getServiceData()
+            val serviceDataList = ServiceImplManager.getDataList()
             for (i in serviceDataList.indices) {
                 val data: ServiceImplData = serviceDataList[i]
                 inject(i == 0, i == serviceDataList.size - 1, data)

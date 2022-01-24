@@ -10,6 +10,6 @@ import com.mars.infra.router.api.ServiceImpl
 class FakeServiceImpl: IFakeService {
 
     override fun fakeTest() {
-        Log.e("mars", "FakeServiceImpl---成功调用 fakeTest")
+        Log.e("mars", "FakeServiceImpl---成功调用 fakeTest---☺️")
     }
 }

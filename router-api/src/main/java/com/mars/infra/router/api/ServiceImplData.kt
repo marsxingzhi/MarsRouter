@@ -8,9 +8,3 @@ data class ServiceImplData(
     val implementClass: String,
     val singleton: Boolean
 )
-
-//data class ServiceImplData(
-//    val interfaceClass: Class<*>,
-//    val implementClass: Class<*>,
-//    val singleton: Boolean
-//)

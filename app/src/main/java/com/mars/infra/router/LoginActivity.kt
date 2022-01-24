@@ -12,7 +12,7 @@ import com.mars.infra.router.runtime.Router
  * Created by JohnnySwordMan on 2022/1/5
  */
 @RouterUri(module = "login", path = "/login")
-class LoginActivity: AppCompatActivity() {
+class LoginActivity : AppCompatActivity() {
 
     lateinit var mBtnLogin: Button
 
@@ -27,13 +27,16 @@ class LoginActivity: AppCompatActivity() {
     }
 
     private fun login() {
-        val loginService = Router.getService(ILoginService::class.java)
-        loginService?.login()
+        Router.getService(ILoginService::class.java)?.also {
+            Log.e("mars", "ILoginService = $it")
+        }?.login()
 
-        Router.getService(IFakeService::class.java)?.fakeTest()
+        Router.getService(IFakeService::class.java)?.also {
+            Log.e("mars", "IFakeService = $it")
+        }?.fakeTest()
 
-        Router.getService(IAccountService::class.java)?.getUser()?.also {
-            Log.e("mars", "成功调用AccountServiceImpl的getUser方法")
-        }
+        Router.getService(IAccountService::class.java)?.also {
+            Log.e("mars", "IAccountService = $it")
+        }?.getUser()
     }
 }

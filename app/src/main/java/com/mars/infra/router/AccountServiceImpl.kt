@@ -1,5 +1,6 @@
 package com.mars.infra.router
 
+import android.util.Log
 import com.mars.infra.router.api.ServiceImpl
 
 /**
@@ -9,6 +10,8 @@ import com.mars.infra.router.api.ServiceImpl
 class AccountServiceImpl : IAccountService {
 
     override fun getUser(): String {
-        return "${AccountServiceImpl::class.java.simpleName}: User"
+        return "${AccountServiceImpl::class.java.simpleName}: User".also {
+            Log.e("mars", "成功调用AccountServiceImpl的getUser方法---☺️")
+        }
     }
 }
