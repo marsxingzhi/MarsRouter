@@ -114,14 +114,46 @@ class RouterTransform : Transform() {
 
         println("RouterTransform collect serviceImplSet = ${mCollector.getServiceImplSet()}")
         println("RouterTransform collect path of ServiceManager.class = ${mCollector.getServiceManagerDestFile()?.absolutePath}")
+        println("RouterTransform collect path of DowngradeManager.class = ${mCollector.getDowngradeManagerDestFile()?.absolutePath}")
 
         // 修改代码
-        mCollector.getDestFile()?.let {
-            RegisterCodeGenerator.insertInitCode(mCollector.getRouterMap(), it)
+//        mCollector.getDestFile()?.let {
+//            RegisterCodeGenerator.insertInitCode(mCollector.getRouterMap(), it)
+//        }
+        // 其实Router.class、ServiceManager.class、DowngradeManager.class是在一个jar包的
+        val routerDestFile = mCollector.getDestFile()
+        val serviceManagerFile = mCollector.getServiceManagerDestFile()
+        val downgradeManagerFile = mCollector.getDowngradeManagerDestFile()
+
+        routerDestFile?.let {
+            RegisterCodeGenerator.insertInitCode(mCollector.getRouterMap(), mCollector.getServiceImplSet(), it)
         }
-        mCollector.getServiceManagerDestFile()?.let { file ->
-            RegisterCodeGenerator.insertServiceImplMap(mCollector.getServiceImplSet(), file)
-        }
+
+//        if (serviceManagerFile != null
+//            && downgradeManagerFile != null
+//            && serviceManagerFile.absolutePath.equals(downgradeManagerFile.absolutePath)) {
+//            RegisterCodeGenerator.insertServiceImplAndDowngradeImplCode(mCollector.getServiceImplSet(), serviceManagerFile)
+//        } else {
+//            serviceManagerFile?.let { file ->
+//                RegisterCodeGenerator.insertServiceImplMap(mCollector.getServiceImplSet(), file)
+//            }
+//            downgradeManagerFile?.let { file ->
+//                RegisterCodeGenerator.insertDowngradeImplMap(file)
+//            }
+//        }
+//        if (mCollector.getServiceManagerDestFile()?.absolutePath.equals(mCollector.getDowngradeManagerDestFile()?.absolutePath)) {
+//            RegisterCodeGenerator.insertServiceImplAndDowngradeImplCode(
+//                mCollector.getServiceImplSet(),
+//                mCollector.getServiceManagerDestFile()
+//            )
+//        } else {
+//            mCollector.getServiceManagerDestFile()?.let { file ->
+//                RegisterCodeGenerator.insertServiceImplMap(mCollector.getServiceImplSet(), file)
+//            }
+//            mCollector.getDowngradeManagerDestFile()?.let { file ->
+//                RegisterCodeGenerator.insertDowngradeImplMap(file)
+//            }
+//        }
     }
 
     private fun foreachClass(directoryInput: DirectoryInput) {

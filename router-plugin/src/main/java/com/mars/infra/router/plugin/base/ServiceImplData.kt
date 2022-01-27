@@ -8,3 +8,10 @@ data class ServiceImplData(
     val implementClass: String,  // com/mars/infra/router/LoginServiceImpl
     val singleton: Boolean
 )
+
+data class DowngradeImplData(
+    val interfaceClass: String,  // com.mars.infra.router.ILoginService
+    val implementClass: String,  // com/mars/infra/router/LoginServiceImpl
+    val singleton: Boolean,
+    val isForceDowngrade: Boolean
+)

@@ -114,7 +114,21 @@ object Router {
     }
 
     fun <T> getService(serviceClass: Class<T>): T? {
-        return ServiceManager.getService(serviceClass)
+        if (DowngradeManager.isForceDowngrade()) {
+            val service =  DowngradeManager.getDowngradeImpl(serviceClass)
+            if (service != null) {
+                return service
+            }
+        }
+        val serviceImpl = ServiceManager.getService(serviceClass)
+        if (serviceImpl != null) {
+            return serviceImpl
+        }
+        val downgradeImpl = DowngradeManager.getDowngradeImpl(serviceClass)
+        if (downgradeImpl != null) {
+            return downgradeImpl
+        }
+        return null
     }
 
     private fun test() {

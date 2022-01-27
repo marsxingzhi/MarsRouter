@@ -21,6 +21,7 @@ class RouterCollector {
 
         private const val SERVICE_IMPL_MAP_PREFIX = "ServiceImplMap_"
         const val SERVICE_MANAGER_PATH = "com/mars/infra/router/runtime/ServiceManager.class"
+        const val DOWNGRADE_MANAGER_PATH = "com/mars/infra/router/runtime/DowngradeManager.class"
     }
 
     private val routerMap = mutableSetOf<String>()
@@ -32,6 +33,9 @@ class RouterCollector {
 
     // ServiceManager.class所在jar包文件
     private var serviceImplDestFile: File? = null
+
+    // DowngradeManager.class所在jar包文件
+    private var downgradeManagerDestFile: File? = null
 
     fun getRouterMap(): Set<String> {
         return routerMap
@@ -47,6 +51,10 @@ class RouterCollector {
 
     fun getServiceManagerDestFile(): File? {
         return serviceImplDestFile
+    }
+
+    fun getDowngradeManagerDestFile(): File? {
+        return downgradeManagerDestFile
     }
 
     /**
@@ -87,7 +95,7 @@ class RouterCollector {
                 val classReader = ClassReader(inputStream)
                 val classWriter = ClassWriter(classReader, 0)
                 val serviceImplCollect = ServiceImplCollectVisitor(Opcodes.ASM7, classWriter, "文件")
-                classReader.accept(serviceImplCollect, ClassReader.EXPAND_FRAMES)
+                classReader.accept(serviceImplCollect, ClassReader.SKIP_DEBUG or ClassReader.SKIP_FRAMES)
                 // 无须输出
 //                val bytes = classWriter.toByteArray()
                 inputStream.close()
@@ -133,6 +141,9 @@ class RouterCollector {
             if (className == SERVICE_MANAGER_PATH) {
                 serviceImplDestFile = file
             }
+            if (className == DOWNGRADE_MANAGER_PATH) {
+                downgradeManagerDestFile = file
+            }
         }
         // 只遍历Jar包中的文件，不做任何处理
 //        val jarOutputStream = JarOutputStream(FileOutputStream(file))
@@ -149,7 +160,7 @@ class RouterCollector {
                 val classWriter = ClassWriter(classReader, 0)
                 val serviceImplCollect =
                     ServiceImplCollectVisitor(Opcodes.ASM7, classWriter, "Jar包")
-                classReader.accept(serviceImplCollect, ClassReader.EXPAND_FRAMES)
+                classReader.accept(serviceImplCollect, ClassReader.SKIP_DEBUG or ClassReader.SKIP_FRAMES)
                 // 不输出
 //                val bytes = classWriter.toByteArray()
                 inputStream.close()

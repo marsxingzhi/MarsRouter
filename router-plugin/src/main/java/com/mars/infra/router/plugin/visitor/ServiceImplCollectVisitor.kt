@@ -8,12 +8,13 @@ import org.objectweb.asm.ClassVisitor
  */
 class ServiceImplCollectVisitor(
     api: Int,
-    classVisitor: ClassVisitor,
+    classVisitor: ClassVisitor?,
     private val tag: String
 ) : ClassVisitor(api, classVisitor) {
 
     companion object {
         const val ANNOTATION_SERVICE_IMPL = "Lcom/mars/infra/router/api/ServiceImpl;"
+        const val ANNOTATION_DOWNGRADE_IMPL = "Lcom/mars/infra/router/api/DowngradeImpl;"
     }
 
 
@@ -42,6 +43,9 @@ class ServiceImplCollectVisitor(
         val visitor = super.visitAnnotation(descriptor, visible)
         if (descriptor == ANNOTATION_SERVICE_IMPL) {
             return ServiceImplAnnotationVisitor(className, api, visitor)
+        }
+        if (descriptor == ANNOTATION_DOWNGRADE_IMPL) {
+            return DowngradeImplAnnotationVisitor(className, api, visitor)
         }
         return visitor
     }
