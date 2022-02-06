@@ -1,7 +1,7 @@
 import org.gradle.internal.jvm.Jvm
 plugins {
-    id 'java-library'
-    id 'kotlin'
+    id("java-library")
+    id("kotlin")
 }
 
 java {
@@ -10,9 +10,9 @@ java {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation project(":router-api")
-    implementation "com.squareup:javapoet:1.9.0"
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.4.32")
+    implementation(project(":router-api"))
+    implementation("com.squareup:javapoet:1.9.0")
     // Project Structure中修改JDK Location，使用本地的，否则报空指针
-    compileOnly files(Jvm.current().getToolsJar())
+    compileOnly(files(Jvm.current().toolsJar))
 }
