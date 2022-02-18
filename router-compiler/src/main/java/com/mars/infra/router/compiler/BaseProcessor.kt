@@ -1,5 +1,7 @@
 package com.mars.infra.router.compiler
 
+import com.mars.infra.router.api.Builder
+import com.mars.infra.router.api.Inject
 import com.mars.infra.router.api.RouterUri
 import javax.annotation.processing.*
 import javax.lang.model.SourceVersion
@@ -19,7 +21,7 @@ abstract class BaseProcessor : AbstractProcessor() {
     protected var mElements: Elements? = null
     protected var mTypes: Types? = null
 
-    private val annotations = setOf(RouterUri::class.java)
+    private val annotations = setOf(RouterUri::class.java, Builder::class.java, Inject::class.java)
 
     override fun getSupportedSourceVersion(): SourceVersion {
         return SourceVersion.latestSupported()
@@ -35,6 +37,7 @@ abstract class BaseProcessor : AbstractProcessor() {
         mMessager = processingEnv?.messager
         mElements = processingEnv?.elementUtils
         mTypes = processingEnv?.typeUtils
+        processingEnv?.let { AptManager.init(it) }
     }
 
     fun isSubType(element: Element, className: String): Boolean {

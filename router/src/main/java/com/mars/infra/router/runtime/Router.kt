@@ -1,7 +1,6 @@
 package com.mars.infra.router.runtime
 
 import android.content.Context
-import android.content.Intent
 import android.util.Log
 import com.mars.infra.router.api.UriCallback
 import com.mars.infra.router.api.UriRequest
@@ -57,6 +56,23 @@ object Router {
     private fun loadRouterMap() {
     }
 
+    fun loadUri(context: Context, request: UriRequest) {
+        chainInterceptor.intercept(request, object : UriCallback {
+            override fun onNext() {
+                start(context, request)
+            }
+
+            override fun onComplete(resultCode: Int) {
+                if (resultCode == UriRequest.ResultCode.SUCCESS) {
+                    start(context, request)
+                } else {
+                    Log.e("mars", "resultCode = $resultCode")
+                }
+
+            }
+        })
+    }
+
     fun loadUri(context: Context, module: String?, path: String?) {
 //        val element = RouterElement(module, path)
 
@@ -86,11 +102,26 @@ object Router {
         })
     }
 
+    /**
+     * 那这里是不是可以反射出LoginActivityBuilder
+     */
     private fun start(context: Context, request: UriRequest) {
         val target = routerMap[request.uri]
-        val cls = Class.forName(target)
-        val intent = Intent(context, cls)
-        context.startActivity(intent)
+
+        val targetBuilder = "${target}Builder"
+
+        val builderClass = Class.forName(targetBuilder)
+
+        val mStartMethod = builderClass.getDeclaredMethod(
+            "start",
+            Context::class.java,
+            String::class.java,
+            String::class.java)
+        mStartMethod.invoke(null, context, request.param1, request.param2)
+
+//        val cls = Class.forName(target)
+//        val intent = Intent(context, cls)
+//        context.startActivity(intent)
     }
 
 

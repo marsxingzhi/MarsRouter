@@ -15,11 +15,14 @@ import kotlin.random.Random
 /**
  * Created by JohnnySwordMan on 2022/1/5
  */
-class UriProcessor : BaseProcessor() {
+class RouterProcessor : BaseProcessor() {
 
     override fun process(annotations: MutableSet<out TypeElement>, env: RoundEnvironment): Boolean {
         handleRouterUriAnnotation(env)
         handleServiceImplAnnotation(env)
+
+        BuilderAnnotationHandler(env).handle()
+
         return true
     }
 

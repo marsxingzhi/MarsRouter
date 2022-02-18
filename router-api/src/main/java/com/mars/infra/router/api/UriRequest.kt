@@ -6,6 +6,10 @@ package com.mars.infra.router.api
 class UriRequest {
     var uri: String? = null
 
+    var param1: String? = null
+
+    var param2: String? = null
+
 
     object ResultCode {
         const val SUCCESS = 0
