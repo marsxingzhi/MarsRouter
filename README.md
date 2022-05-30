@@ -24,9 +24,12 @@ plugins {
 }
 ```     
 #### 2、示例一       
-需求描述：在主页面调起登录页面
-1、在`LoginActivity`类上，添加注解    
-`@RouterUri`：标识LoginActivity对应的uri
+需求描述：在主页面调起登录页面        
+
+1、在`LoginActivity`类上，添加注解          
+
+`@RouterUri`：标识LoginActivity对应的uri      
+
 `@Builder`和`@Inject`：自动赋值，与Dagger中的Inject功能类似
 ```kotlin
 @RouterUri(module = "login", path = "/login")
@@ -112,7 +115,17 @@ class LoginActivity : Activity() {
         return null
     }
 ```  
-- 反编译apk，可以看到ServiceManager
+- `ServiceManager.getService`方法体是插桩实现的，源码如下：
+```java
+public class ServiceManager {
+
+    // ASM
+    public static <T> T getService(Class<T> serviceClass) {
+        return null;
+    }
+}
+```
+- 反编译APK，`ServiceManager.getService`真正实现如下：
 ![getService插入代码](./assets/getService插入代码.png)
 
       
