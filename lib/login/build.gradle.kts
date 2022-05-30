@@ -1,22 +1,20 @@
 plugins {
-    id("com.android.application")
+    id("com.android.library")
     id("kotlin-android")
     id("kotlin-kapt")
-    id("com.mars.infra.router.plugin.v2")
 }
 
 android {
-    compileSdkVersion(31)
-    buildToolsVersion("30.0.2")
+    compileSdkVersion(32)
 
     defaultConfig {
-        applicationId  = "com.mars.infra.router"
         minSdkVersion(23)
-        targetSdkVersion(31)
+        targetSdkVersion(32)
         versionCode = 1
         versionName = "1.0"
 
-        testInstrumentationRunner  = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
@@ -45,15 +43,8 @@ dependencies {
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.appcompat:appcompat:1.4.0")
     implementation("com.google.android.material:material:1.4.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.2")
-    testImplementation("junit:junit:4.+")
-    androidTestImplementation("androidx.test.ext:junit:1.1.3")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
 
-    implementation(project(":router"))
+    implementation(project(":lib:login-api"))
     implementation(project(":router-api"))
     kapt(project(":router-compiler"))
-
-    implementation(project(":lib:login"))
-    implementation(project(":lib:login-api"))
 }

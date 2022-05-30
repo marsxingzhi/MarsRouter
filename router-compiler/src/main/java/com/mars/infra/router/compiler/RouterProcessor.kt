@@ -1,28 +1,64 @@
 package com.mars.infra.router.compiler
 
-import com.mars.infra.router.api.RouterUri
-import com.mars.infra.router.api.ServiceImpl
-import com.mars.infra.router.api.ServiceImplData
+import com.mars.infra.router.api.*
 import com.squareup.javapoet.*
-import javax.annotation.processing.RoundEnvironment
+import javax.annotation.processing.*
+import javax.lang.model.SourceVersion
 import javax.lang.model.element.Element
 import javax.lang.model.element.Modifier
 import javax.lang.model.element.TypeElement
-import javax.lang.model.type.MirroredTypeException
 import javax.lang.model.type.MirroredTypesException
-import kotlin.random.Random
+import javax.lang.model.type.TypeMirror
+import javax.lang.model.util.Elements
+import javax.lang.model.util.Types
 
 /**
  * Created by JohnnySwordMan on 2022/1/5
  */
-class RouterProcessor : BaseProcessor() {
+class RouterProcessor : AbstractProcessor() {
+
+    private var mFiler: Filer? = null
+    private var mMessager: Messager? = null
+    private var mElements: Elements? = null
+    private var mTypes: Types? = null
+    private var moduleName: String? = null
+
+
+    private val annotations = setOf(
+        RouterUri::class.java,
+        Builder::class.java,
+        Inject::class.java,
+        ServiceImpl::class.java,
+    )
+
+    override fun getSupportedSourceVersion(): SourceVersion {
+        return SourceVersion.latestSupported()
+    }
+
+    override fun getSupportedAnnotationTypes(): MutableSet<String> {
+        return annotations.mapTo(HashSet(), Class<*>::getCanonicalName)
+    }
+
+    override fun init(processingEnv: ProcessingEnvironment?) {
+        super.init(processingEnv)
+        mFiler = processingEnv?.filer
+        mMessager = processingEnv?.messager
+        mElements = processingEnv?.elementUtils
+        mTypes = processingEnv?.typeUtils
+        processingEnv?.let { AptManager.init(it) }
+
+        processingEnv?.options?.let {
+            moduleName = it["moduleName"]
+            println("APT---moduleName = $moduleName")
+        }
+    }
+
 
     override fun process(annotations: MutableSet<out TypeElement>, env: RoundEnvironment): Boolean {
+        println("RouterProcessor---执行process方法, 当前 module name = $moduleName")
         handleRouterUriAnnotation(env)
         handleServiceImplAnnotation(env)
-
         BuilderAnnotationHandler(env).handle()
-
         return true
     }
 
@@ -61,7 +97,7 @@ class RouterProcessor : BaseProcessor() {
                 println("ServiceImplData = $data")
                 codeBlockBuilder.addStatement("map.put(\$S, \$S)", interfaceClass.toString(), implementClass)
             }
-        ServiceImplOperate.buildServiceImplMapClass(mFiler, codeBlockBuilder.build())
+        ServiceImplOperate.buildServiceImplMapClass(mFiler, codeBlockBuilder.build(), moduleName!!)
     }
 
     private fun handleRouterUriAnnotation(env: RoundEnvironment) {
@@ -103,7 +139,7 @@ class RouterProcessor : BaseProcessor() {
         }
         // 不能重复创建Java文件，因此这个需要放在forEach之后
         buildUriAnnotationInitClass(codeBlockBuilder.build(), hash)
-        buildRouterMappingClass(codeBlockBuilderForRouterMap.build(), hash)
+        buildRouterMappingClass(codeBlockBuilderForRouterMap.build(), hash, moduleName!!)
     }
 
     /**
@@ -117,7 +153,7 @@ class RouterProcessor : BaseProcessor() {
      *      }
      * }
      */
-    private fun buildRouterMappingClass(codeBlock: CodeBlock?, hash: String) {
+    private fun buildRouterMappingClass(codeBlock: CodeBlock?, hash: String, suffix: String) {
         val methodSpec =
             MethodSpec.methodBuilder("get")
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
@@ -127,7 +163,7 @@ class RouterProcessor : BaseProcessor() {
                 .build()
 
         val typeSpec =
-            TypeSpec.classBuilder("RouterMapping_${hash}")
+            TypeSpec.classBuilder("RouterMapping_${hash}_$suffix")
                 .addModifiers(Modifier.PUBLIC)
                 .addMethod(methodSpec)
                 .build()
@@ -153,18 +189,22 @@ class RouterProcessor : BaseProcessor() {
         val simpleName = "UriAnnotationInit"
         val superInterfaceName = URI_ANNOTATION_INIT_CLASS
 
+        val uriHandlerTypeElement = typeElement(URI_HANDLER_CLASS)?:return
+        val superInterfaceTypeElement = typeElement(superInterfaceName)?:return
+
         val methodSpec =
             MethodSpec.methodBuilder(URI_ANNOTATION_INIT_METHOD)
                 .addModifiers(Modifier.PUBLIC)
-                .addParameter(ClassName.get(typeElement(URI_HANDLER_CLASS)), "handler")
+                .addParameter(ClassName.get(uriHandlerTypeElement), "handler")
                 .addCode(codeBlock)
                 .returns(TypeName.VOID)
                 .build()
 
+
         val typeSpec =
             TypeSpec.classBuilder("${simpleName}_${hash}")
                 .addModifiers(Modifier.PUBLIC)
-                .addSuperinterface(ClassName.get(typeElement(superInterfaceName)))  // 如果typeElement方法崩溃，需要检查是否对应的className打到apk中
+                .addSuperinterface(ClassName.get(superInterfaceTypeElement))  // 如果typeElement方法崩溃，需要检查是否对应的className打到apk中
                 .addMethod(methodSpec)
                 .build()
 
@@ -174,6 +214,20 @@ class RouterProcessor : BaseProcessor() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+
+    fun isSubType(element: Element, className: String): Boolean {
+        return mTypes!!.isSubtype(element.asType(), typeMirror(className))
+    }
+
+    private fun typeMirror(className: String): TypeMirror {
+        return mElements!!.getTypeElement(className).asType()
+    }
+
+    // Caused by: java.lang.NullPointerException: mElements!!.getTypeElement(className) must not be null
+    fun typeElement(className: String): TypeElement? {
+        return mElements!!.getTypeElement(className)
     }
 
 }

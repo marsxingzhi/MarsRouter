@@ -9,8 +9,8 @@ buildscript {
     dependencies {
         classpath("com.android.tools.build:gradle:4.1.0")
 //        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.32")
-        classpath(kotlin(module = "gradle-plugin", version= "1.4.32"))
-        classpath("com.mars.infra:mars-router-plugin:0.2.23")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.21")
+        classpath("com.mars.infra:mars-router-plugin:0.3.0")
     }
 }
 

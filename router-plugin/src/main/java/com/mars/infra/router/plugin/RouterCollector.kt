@@ -154,7 +154,8 @@ class RouterCollector {
             val entryName = jarEntry.name
             val zipEntry = ZipEntry(entryName)
             // 这里可以过滤一下，因为jar包中的类好多，有不少是android jar中的，这个是没有必要走ClassVisitor的
-            if (entryName.contains("com/mars/infra/router") && entryName.endsWith(".class")) {
+            // 说明：这里只是自己的项目，对外提供时，这个不应该过滤包名
+            if (entryName.contains("com/mars/infra") && entryName.endsWith(".class")) {
                 val inputStream = jarFile.getInputStream(zipEntry)
                 val classReader = ClassReader(inputStream)
                 val classWriter = ClassWriter(classReader, 0)

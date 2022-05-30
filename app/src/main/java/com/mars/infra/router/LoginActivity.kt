@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
+import com.mars.infra.login.api.ILoginService
 import com.mars.infra.router.api.Builder
 import com.mars.infra.router.api.Inject
 import com.mars.infra.router.api.RouterUri
@@ -44,15 +45,15 @@ class LoginActivity : Activity() {
 
     private fun login() {
         Router.getService(ILoginService::class.java)?.also {
-            Log.e("mars", "ILoginService = $it")
+            Log.e("mars", "LoginActivity--->ILoginService = $it")
         }?.login()
 
         Router.getService(IFakeService::class.java)?.also {
-            Log.e("mars", "IFakeService = $it")
+            Log.e("mars", "LoginActivity--->IFakeService = $it")
         }?.fakeTest()
 
         Router.getService(IAccountService::class.java)?.also {
-            Log.e("mars", "IAccountService = $it")
+            Log.e("mars", "LoginActivity--->IAccountService = $it")
         }?.getUser()
     }
 }

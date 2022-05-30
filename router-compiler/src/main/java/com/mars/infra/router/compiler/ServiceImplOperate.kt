@@ -9,7 +9,7 @@ import javax.lang.model.element.Modifier
  */
 object ServiceImplOperate {
 
-    fun buildServiceImplMapClass(filer: Filer?, codeBlock: CodeBlock) {
+    fun buildServiceImplMapClass(filer: Filer?, codeBlock: CodeBlock, suffix: String) {
 
         val methodSpec = MethodSpec.methodBuilder("collectServiceImplMap")
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
@@ -18,7 +18,7 @@ object ServiceImplOperate {
             .returns(ClassName.get("java.util", "Map"))
             .build()
 
-        val typeSpec = TypeSpec.classBuilder("ServiceImplMap_1024")
+        val typeSpec = TypeSpec.classBuilder("ServiceImplMap_1024_$suffix")
             .addModifiers(Modifier.PUBLIC)
             .addMethod(methodSpec)
             .build()
